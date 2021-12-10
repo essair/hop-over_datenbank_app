@@ -21,57 +21,55 @@ hopover_pos <- "aktuelle_datenbankstand_21_07_15_empty_Statt_NA.csv" %>%
 
 ui <-  fluidPage(
   titlePanel("trying out datatable to show selection!! "),
-  
-  #Create a new Row in the UI for selectInputs
+    #Create a new Row in the UI for selectInputs
   sidebarLayout(
     sidebarPanel(
-        sliderInput("Laenge",
-                    "Länge:",
-                    min=min(hopover_pos$Laenge, na.rm=TRUE),
-                    max=max(hopover_pos$Laenge, na.rm=TRUE),
-                    round=TRUE,
-                    value= c(100, 500)),
-        sliderInput("Höhe",
-                    "minimal Höhe:",
-                    min=min(hopover_pos$Höhe, na.rm=TRUE),
-                    max=max(hopover_pos$Höhe, na.rm=TRUE),
-                    step=1,
-                    value= 4),
-        selectInput("Strassentyp",
-                    "Straßentyp:",
-                    choices = c("Wähle" = "", levels(hopover_pos$Strassentyp)), multiple = TRUE, selected=unique(levels(hopover_pos$Strassentyp))),
-        
-        sliderInput("Anzahl_spuren",
-                    "Anzahl Spuren:",
-                    step=1,
-                    ticks=TRUE,
-                    min=min(hopover_pos$Anzahl_spuren, na.rm=TRUE),
-                    max=max(hopover_pos$Anzahl_spuren, na.rm=TRUE),
-                    value= 4),
-        
-        selectInput("Art",
-                    "Art der Struktur:",
-                    choices = c("Wähle" = "", levels(hopover_pos$Art)), multiple = TRUE, selected=c(unique(levels(hopover_pos$Art)), "NA")),
-        
-        selectInput("beidseitige_HopOver",
-                    "Beidseitige Hop-Over?:",
-                    c("All",
-                      unique(as.character(hopover_pos$beidseitige_HopOver)))),
-        
-        selectInput("Gewässerunterführung",
-                    "Gewässerunterführung oder sonst. Unterführung:",
-                    c("All",
-                      unique(as.character(hopover_pos$Gewässerunterführung)))),
-        width=2),
+      sliderInput("Laenge",
+                  "Länge:",
+                  min=min(hopover_pos$Laenge, na.rm=TRUE),
+                  max=max(hopover_pos$Laenge, na.rm=TRUE),
+                  round=TRUE,
+                  value= c(100, 500)),
+      sliderInput("Höhe",
+                  "minimal Höhe:",
+                  min=min(hopover_pos$Höhe, na.rm=TRUE),
+                  max=max(hopover_pos$Höhe, na.rm=TRUE),
+                  step=1,
+                  value= 4),
+      selectInput("Strassentyp",
+                  "Straßentyp:",
+                  choices = c("Wähle" = "", levels(hopover_pos$Strassentyp)), multiple = TRUE, selected=unique(levels(hopover_pos$Strassentyp))),
+      
+      sliderInput("Anzahl_spuren",
+                  "Anzahl Spuren:",
+                  step=1,
+                  ticks=TRUE,
+                  min=min(hopover_pos$Anzahl_spuren, na.rm=TRUE),
+                  max=max(hopover_pos$Anzahl_spuren, na.rm=TRUE),
+                  value= 4),
+      
+      selectInput("Art",
+                  "Art der Struktur:",
+                  choices = c("Wähle" = "", levels(hopover_pos$Art)), multiple = TRUE, selected=c(unique(levels(hopover_pos$Art)), "NA")),
+      
+      selectInput("beidseitige_HopOver",
+                  "Beidseitige Hop-Over?:",
+                  c("All",
+                    unique(as.character(hopover_pos$beidseitige_HopOver)))),
+      
+      selectInput("Gewässerunterführung",
+                  "Gewässerunterführung oder sonst. Unterführung:",
+                  c("All",
+                    unique(as.character(hopover_pos$Gewässerunterführung)))),
+      width=2),
     # Create a new row for the table.
     mainPanel(
       fluidRow(
-      column(12, DT::dataTableOutput("table"))),
-      column(12, leaflet::leafletOutput("mappy")
-             ),
-      width=10)
+        column(12, DT::dataTableOutput("table")),
+        column(12, leaflet::leafletOutput("mappy", height="600px"))),
+        width=10)
+    )
   )
-)
 
 server <- function(input, output) {
   data_selection <- reactive({    
@@ -134,11 +132,10 @@ server <- function(input, output) {
                                 labelOptions = leaflet::labelOptions(noHide = T, direction = "right", 
                                                                      style = list(
                                                                        "font-size" = "13px",
-                                                                       "font-weight" = "bold")))
-    leaflet::leafletOutput(height= "800px")%>%
-    leaflet::setView(mean(range(data_selection()$lon, na.rm=TRUE)), mean(range(data_selection()$lat, na.rm=TRUE)),
-                     zoom=6)# this line is not working output ID is missing!
-  })
+                                                                       "font-weight" = "bold")))%>%
+     leaflet::setView(mean(range(data_selection()$lon, na.rm=TRUE)), mean(range(data_selection()$lat, na.rm=TRUE)),
+                      zoom=7)# this line is not working output ID is missing!
+   })
 
   
 }
