@@ -1,6 +1,7 @@
 #testing_filters with data table
 
 library(shiny)
+library(shinyWidgets)
 library(dplyr)
 library(purrr)
 library(leaflet)
@@ -20,18 +21,18 @@ hopover_pos <- "aktuelle_datenbankstand_21_07_15_empty_Statt_NA.csv" %>%
 
 
 ui <-  fluidPage(
-  titlePanel("trying out datatable to show selection!! "),
+  titlePanel("Hop-Over Auswahl App"),
     #Create a new Row in the UI for selectInputs
   sidebarLayout(
     sidebarPanel(
       sliderInput("Laenge",
-                  "Länge:",
+                  "Länge der Struktur:",
                   min=min(hopover_pos$Laenge, na.rm=TRUE),
                   max=max(hopover_pos$Laenge, na.rm=TRUE),
                   round=TRUE,
                   value= c(100, 500)),
       sliderInput("Höhe",
-                  "minimal Höhe:",
+                  "minimale Höhe:",
                   min=min(hopover_pos$Höhe, na.rm=TRUE),
                   max=max(hopover_pos$Höhe, na.rm=TRUE),
                   step=1,
@@ -61,7 +62,7 @@ ui <-  fluidPage(
                   "Gewässerunterführung oder sonst. Unterführung:",
                   c("All",
                     unique(as.character(hopover_pos$Gewässerunterführung)))),
-      width=2),
+      width=2, colour="dark green"),
     # Create a new row for the table.
     mainPanel(
       fluidRow(
@@ -111,7 +112,32 @@ server <- function(input, output) {
   output$table <- DT::renderDataTable(
     DT::datatable(data_selection()%>%
                     select(-any_of(c("lat", "lon"))),
-                  rownames=FALSE, class="hover compact stripe", options=list(scrollY= "200px", paging =FALSE)))
+                  rownames=FALSE, class="hover compact stripe", options=list(scrollY= "200px", paging =FALSE),
+                  selection= 'single'))
+  
+  
+  observeEvent(input$table_rows_selected, ignoreNULL = FALSE,{
+    if (!is.null(input$table_rows_selected)){
+      the_row <- data_selection()[input$table_rows_selected, ]
+    lat <- the_row$lat
+    lon <- the_row$lon
+    message("rows selected info")
+    print(c(lat, lon))
+    leafletProxy( "mappy", data=data_selection())%>%
+           leaflet::setView(lon, lat, zoom=18)
+    }else {leafletProxy( "mappy", data=data_selection())%>%
+        leaflet::setView(10.063, 51.152, zoom=6)}
+  })
+  
+  # output$table_row_selected <- renderText({
+  #   table_row_selected()
+  # })
+
+  # observe({
+  #   mouse_selection <- input$table_rows_selected()
+  #   leafletProxy( "mappy", data=data_selection())%>%
+  #     leaflet::setView(mouse_selection()$lon, mouse_selection()$lat, zoom=12)
+  # })
   
   output$mappy <- renderLeaflet({
     shiny::validate(need(nrow(data_selection())>0, message= "Oops, keine passende Hop-Over Strukturen gefunden!"))
@@ -133,42 +159,13 @@ server <- function(input, output) {
                                                                      style = list(
                                                                        "font-size" = "13px",
                                                                        "font-weight" = "bold")))%>%
-     leaflet::setView(mean(range(data_selection()$lon, na.rm=TRUE)), mean(range(data_selection()$lat, na.rm=TRUE)),
-                      zoom=7)# this line is not working output ID is missing!
+      leaflet::setView(10.063, 51.152, zoom=6)# this line is not working output ID is missing!
+            # leaflet::setView(mean(range(data_selection()$lon, na.rm=TRUE)), mean(range(data_selection()$lat, na.rm=TRUE)),
+      #                 zoom=7)# this line is not working output ID is missing!
    })
 
   
 }
 
 shinyApp(ui, server)
-
-
-
-##bits and bobs
-output$mappy <- renderLeaflet({
-  observeEvent(data_selection(), {
-    leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI Satellit") %>%
-      leaflet::addCirclesMarkers(lng = ~ lon,
-                                 lat = ~ lat, 
-                                 label = ~ purrr::map(ID, shiny::HTML),
-                                 colour=grey)
-    
-mappy <- leaflet::leaflet() %>%
-        leaflet::addTiles()%>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI Satellit")%>%
-        leaflet::addCircleMarkers(data= hopover_pos,
-                                  lng= ~lon,
-                                  lat= ~lat,
-                                  label = ~purrr::map(ID, shiny::HTML),
-                                  color = "grey",
-                                  stroke = 0.05,
-                                  #fillColor = ~ colour,
-                                  fillOpacity = 1,
-                                  labelOptions = leaflet::labelOptions(noHide = T, direction = "right", 
-                                                                       style = list(
-                                                                         "font-size" = "13px",
-                                                                         "font-weight" = "bold")))%>%
-  leaflet::setView(mean(hopover_pos$lon, na.rm=TRUE), mean(hopover_pos$lat, na.rm=TRUE), zoom= 6)
-})
-
 
