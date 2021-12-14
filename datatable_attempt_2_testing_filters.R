@@ -4,6 +4,7 @@ library(shiny)
 library(shinyWidgets)
 library(dplyr)
 library(purrr)
+library(tidyr)
 library(leaflet)
 
 
@@ -14,9 +15,12 @@ hopover_pos <- "aktuelle_datenbankstand_21_07_15_empty_Statt_NA.csv" %>%
                                   "Gewässerunterführung", "Bau", "Bemerkung"), locale = readr::locale(decimal_mark = "."), delim = ",")%>%
   mutate(ID = as.integer(ID),
          Strassentyp = as.factor(Strassentyp),
-         Art = as.factor(Art), 
-         beidseitige_HopOver = as.factor(beidseitige_HopOver),
-         Gewässerunterführung =as.factor(Gewässerunterführung))
+         Art = as.factor(tidyr::replace_na(Art, "unklar")), 
+         beidseitige_HopOver = as.factor(tidyr::replace_na(beidseitige_HopOver, "unklar")),
+         Gewässerunterführung =as.factor(Gewässerunterführung),
+         Anzahl_spuren = tidyr::replace_na(Anzahl_spuren, 2),
+         Höhe = tidyr::replace_na(Höhe, 4),
+         Laenge = tidyr::replace_na(Laenge, 1))
 
 
 
@@ -30,13 +34,13 @@ ui <-  fluidPage(
                   min=min(hopover_pos$Laenge, na.rm=TRUE),
                   max=max(hopover_pos$Laenge, na.rm=TRUE),
                   round=TRUE,
-                  value= c(100, 500)),
+                  value= c(1, 1200)),
       sliderInput("Höhe",
                   "minimale Höhe:",
                   min=min(hopover_pos$Höhe, na.rm=TRUE),
                   max=max(hopover_pos$Höhe, na.rm=TRUE),
                   step=1,
-                  value= 4),
+                  value= 2),
       selectInput("Strassentyp",
                   "Straßentyp:",
                   choices = c("Wähle" = "", levels(hopover_pos$Strassentyp)), multiple = TRUE, selected=unique(levels(hopover_pos$Strassentyp))),
@@ -47,7 +51,7 @@ ui <-  fluidPage(
                   ticks=TRUE,
                   min=min(hopover_pos$Anzahl_spuren, na.rm=TRUE),
                   max=max(hopover_pos$Anzahl_spuren, na.rm=TRUE),
-                  value= 4),
+                  value=c(2, 8)),
       
       selectInput("Art",
                   "Art der Struktur:",
@@ -55,12 +59,12 @@ ui <-  fluidPage(
       
       selectInput("beidseitige_HopOver",
                   "Beidseitige Hop-Over?:",
-                  c("All",
+                  c("Alle",
                     unique(as.character(hopover_pos$beidseitige_HopOver)))),
       
       selectInput("Gewässerunterführung",
                   "Gewässerunterführung oder sonst. Unterführung:",
-                  c("All",
+                  c("Alle",
                     unique(as.character(hopover_pos$Gewässerunterführung)))),
       width=2, colour="dark green"),
     # Create a new row for the table.
@@ -84,14 +88,14 @@ server <- function(input, output) {
     data <- data%>%
       filter(Strassentyp %in% input$Strassentyp)
     data <- data%>%
-      filter(Anzahl_spuren == input$Anzahl_spuren)
+      filter(Anzahl_spuren >=input$Anzahl_spuren[1] & Anzahl_spuren <=input$Anzahl_spuren[2])
     data <- data%>%
       filter(Art %in% input$Art)
-    if (input$beidseitige_HopOver != "All") {
+    if (input$beidseitige_HopOver != "Alle") {
       data <- data%>%
         filter(beidseitige_HopOver == input$beidseitige_HopOver)
     }
-    if (input$Gewässerunterführung != "All") {
+    if (input$Gewässerunterführung != "Alle") {
       data <- data%>%
         filter(Gewässerunterführung == input$Gewässerunterführung)
     }
@@ -151,7 +155,7 @@ server <- function(input, output) {
                                 lng= ~lon,
                                 lat= ~lat,
                                 label = ~purrr::map(ID, shiny::HTML),
-                                color = "grey",
+                                color = "orange",
                                 stroke = 0.05,
                                 #fillColor = ~ colour,
                                 fillOpacity = 1,
