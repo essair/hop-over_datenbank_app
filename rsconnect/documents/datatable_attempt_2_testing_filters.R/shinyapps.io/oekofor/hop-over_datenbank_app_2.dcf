@@ -1,0 +1,14 @@
+name: hop-over_datenbank_app_2
+title: hop-over_datenbank_app_2
+username:
+account: oekofor
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5304916
+bundleId: 5371995
+url: https://oekofor.shinyapps.io/hop-over_datenbank_app_2/
+when: 1639499203.10061
+lastSyncTime: 1639499203.10063
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: aktuelle_datenbankstand_21_07_15.csv|publizierte_datenbank_version_dez_2021.R|publizierte_mod_hop_over_map_dez_2021.R|README.md|test_app_stuff_for_learning.R|testing_filters.R
