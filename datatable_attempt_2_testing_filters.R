@@ -57,9 +57,9 @@ hopover_pos <- read.csv("/home/sarah/git/hop-over_datenbank_app/Datenbank_Tab_ap
 
 
 ui <-  fluidPage(
-  titlePanel( div(column(width = 2, h2("Hop-Over Auswahl App")), 
-                  column(width = 10, img(src = "/home/sarah/git/hop-over_datenbank_app/20200827_offizielles_Logo.png", align= "right"))),
-              windowTitle="OekoFor  Hop-Over Auswahl App"),
+  titlePanel( div(column(width = 6, h2("Hop-Over Auswahl App")), 
+                  column(width = 6, img(src="20200827_offizielles_Logo.png", align= "right", height="100px"))),
+              windowTitle="OekoFor Hop-Over Auswahl App"),
     #Create a new Row in the UI for selectInputs
   sidebarLayout(
     sidebarPanel(
@@ -106,11 +106,12 @@ ui <-  fluidPage(
        conditionalPanel(condition = "output.warnstat == 'Error'",
                         verbatimTextOutput("warnmsg")),
       fluidPage(
-        column(6, DT::dataTableOutput("table"), height="800px"),
-        column(6, leaflet::leafletOutput("mappy", height="800px"))),
+        column(6, height="750px", DT::dataTableOutput("table")),
+        column(6, height="800px", leaflet::leafletOutput("mappy")),
         width=10)
     )
   )
+)
 
 server <- function(input, output) {
   data_selection <- reactive({    
@@ -154,7 +155,7 @@ server <- function(input, output) {
   output$table <- DT::renderDataTable(
     data_selection()%>%
       select(-any_of(c("lat", "lon")))%>%
-      DT::datatable(rownames=FALSE, class="hover compact stripe", options=list(scrollY= "800px",
+      DT::datatable(rownames=FALSE, class="hover compact stripe", options=list(scrollY= "750px",
                                                                              paging =FALSE, scrollX=TRUE, autoWidth=TRUE, searching=FALSE, # searching removes the search bar
                                                                              columnDefs=list(list(targets=ncol(.)-1, width="800px"))),
                   selection= 'single', filter="top"))
